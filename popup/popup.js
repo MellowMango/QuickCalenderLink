@@ -8,45 +8,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function getCurrentTab() {
     try {
-        // Check if chrome.tabs is available
-        if (!chrome.tabs) {
-            console.warn('chrome.tabs API not available');
-            return null;
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tabs || tabs.length === 0) {
+            throw new Error('No active tab found');
         }
-
-        // Add loading state
-        const loadingNotification = document.getElementById('notification');
-        if (loadingNotification) {
-            loadingNotification.textContent = 'Loading tab information...';
-            loadingNotification.classList.remove('hidden', 'success', 'error');
-        }
-
-        return new Promise((resolve) => {
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if (chrome.runtime.lastError) {
-                    console.warn('Tab query error:', chrome.runtime.lastError);
-                    resolve(null);
-                    return;
-                }
-                
-                if (!tabs || tabs.length === 0) {
-                    console.warn('No active tab found');
-                    resolve(null);
-                    return;
-                }
-                
-                resolve(tabs[0]);
-            });
-        });
+        return tabs[0];
     } catch (error) {
-        console.warn('Tab access error:', error);
-        return null;
-    } finally {
-        // Clear loading state
-        const loadingNotification = document.getElementById('notification');
-        if (loadingNotification) {
-            loadingNotification.classList.add('hidden');
-        }
+        console.error('Tab query error:', error);
+        throw new Error('Failed to access current tab information');
     }
 }
 
@@ -74,24 +43,21 @@ async function initializePopup() {
             }
         });
 
-        // Set default date and time first
+        // Get current tab and pre-fill form
+        const tab = await getCurrentTab();
+        elements.title.value = tab.title || '';
+        elements.description.value = tab.url ? `Source: ${tab.url}` : '';
+
+        // Set default date and time
         const now = new Date();
         elements.date.value = now.toISOString().split('T')[0];
         elements.time.value = now.toTimeString().slice(0, 5);
-
-        // Try to get current tab info, but continue even if it fails
-        const tab = await getCurrentTab();
-        if (tab) {
-            // Pre-fill form with tab info if available
-            elements.title.value = tab.title || '';
-            elements.description.value = tab.url ? `Source: ${tab.url}` : '';
-        }
 
         setupEventHandlers(elements);
 
     } catch (error) {
         console.error('Initialization error:', error);
-        showNotification('Some features might be limited. You can still create events manually.', 'error');
+        showNotification('Failed to initialize: ' + error.message, 'error');
     }
 }
 
