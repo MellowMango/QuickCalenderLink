@@ -3,7 +3,7 @@
   "name": "Calendar Event Creator",
   "version": "1.0",
   "description": "Create Google Calendar events from web pages",
-  "key": "ObGmHdkKWtIiraxnq61w2yFukztqK1jjQ/q7aLiElwI=",
+  "key": "mW1oiaQc3JWjFGEn04vcQXAUlf3Tbf/UX95OXBvLEFU=",
   "permissions": [
     "activeTab",
     "identity",
@@ -23,7 +23,7 @@
     "service_worker": "background/background.js"
   },
   "oauth2": {
-    "client_id": "828541577236-2vlknoonm9sgo5usu8o17mckm7c83gj9.apps.googleusercontent.com",
+    "client_id": "${YOUR_GOOGLE_CLIENT_ID}",
     "scopes": [
       "https://www.googleapis.com/auth/calendar.events"
     ]
