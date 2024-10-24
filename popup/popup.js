@@ -6,204 +6,251 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-async function initializePopup() {
+async function getCurrentTab() {
     try {
-        // Get current tab information
-        console.log('Fetching current tab information...');
-        const tabs = await chrome.tabs.query({ active: true, currentWindow: true }).catch(error => {
-            throw new Error('Failed to get current tab information: ' + error.message);
-        });
-        
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tabs || tabs.length === 0) {
             throw new Error('No active tab found');
         }
-        
-        const tab = tabs[0];
-        
-        // Pre-fill form with page title and URL
-        const titleInput = document.getElementById('title');
-        const descriptionInput = document.getElementById('description');
-        
-        if (!titleInput || !descriptionInput) {
-            throw new Error('Required form elements not found');
-        }
-        
-        titleInput.value = tab.title || '';
-        descriptionInput.value = tab.url ? `Source: ${tab.url}` : '';
-        
-        // Set default date and time
-        const now = new Date();
-        document.getElementById('date').value = now.toISOString().split('T')[0];
-        document.getElementById('time').value = now.toTimeString().slice(0, 5);
-        
-        setupEventHandlers();
-        
+        return tabs[0];
     } catch (error) {
-        console.error('Initialization error:', error);
-        showNotification('Failed to initialize popup: ' + error.message, 'error');
+        console.error('Tab query error:', error);
+        throw new Error('Failed to access current tab information');
     }
 }
 
-function setupEventHandlers() {
-    console.log('Setting up event handlers...');
-    
-    // Handle recurring event selection
-    const recurringSelect = document.getElementById('recurring');
-    const recurringEndGroup = document.getElementById('recurringEndGroup');
-    
-    if (recurringSelect && recurringEndGroup) {
-        recurringSelect.addEventListener('change', () => {
-            recurringEndGroup.style.display = recurringSelect.value ? 'flex' : 'none';
-            if (recurringSelect.value) {
-                const endDate = new Date(document.getElementById('date').value);
-                endDate.setMonth(endDate.getMonth() + 1);
-                document.getElementById('recurringEnd').value = endDate.toISOString().split('T')[0];
+async function initializePopup() {
+    try {
+        // Get DOM elements
+        const elements = {
+            title: document.getElementById('title'),
+            description: document.getElementById('description'),
+            date: document.getElementById('date'),
+            time: document.getElementById('time'),
+            recurring: document.getElementById('recurring'),
+            recurringEnd: document.getElementById('recurringEnd'),
+            previewBtn: document.getElementById('previewBtn'),
+            editBtn: document.getElementById('editBtn'),
+            previewSection: document.getElementById('previewSection'),
+            formGroups: document.querySelectorAll('.form-group'),
+            notification: document.getElementById('notification')
+        };
+
+        // Validate required elements
+        Object.entries(elements).forEach(([key, element]) => {
+            if (!element && key !== 'recurringEnd') {
+                throw new Error(`Required element "${key}" not found`);
             }
         });
+
+        // Get current tab and pre-fill form
+        const tab = await getCurrentTab();
+        elements.title.value = tab.title || '';
+        elements.description.value = tab.url ? `Source: ${tab.url}` : '';
+
+        // Set default date and time
+        const now = new Date();
+        elements.date.value = now.toISOString().split('T')[0];
+        elements.time.value = now.toTimeString().slice(0, 5);
+
+        setupEventHandlers(elements);
+
+    } catch (error) {
+        console.error('Initialization error:', error);
+        showNotification('Failed to initialize: ' + error.message, 'error');
+    }
+}
+
+function setupEventHandlers(elements) {
+    console.log('Setting up event handlers...');
+
+    // Handle recurring event selection
+    if (elements.recurring && elements.recurringEnd) {
+        elements.recurring.addEventListener('change', () => handleRecurringChange(elements));
     }
 
     // Preview button handler
-    const previewBtn = document.getElementById('previewBtn');
-    const editBtn = document.getElementById('editBtn');
-    const previewSection = document.getElementById('previewSection');
-    const formGroups = document.querySelectorAll('.form-group');
-    
-    if (!previewBtn || !editBtn || !previewSection) {
-        console.error('Preview elements not found');
-        return;
-    }
-    
-    previewBtn.addEventListener('click', () => {
-        console.log('Preview button clicked');
-        try {
-            // Add loading state
-            previewBtn.disabled = true;
-            previewBtn.textContent = 'Loading preview...';
-            
-            const eventDetails = getEventDetails();
-            console.log('Event details:', eventDetails);
-            
-            // Update preview content
-            document.getElementById('previewTitle').textContent = eventDetails.title;
-            document.getElementById('previewDateTime').textContent = 
-                formatDateTime(eventDetails.date, eventDetails.time);
-            document.getElementById('previewDescription').textContent = eventDetails.description || 'No description';
-            document.getElementById('previewRecurrence').textContent = 
-                formatRecurrence(eventDetails.recurring, eventDetails.recurringEnd);
-            
-            // Show preview section with smooth transition
-            previewSection.style.opacity = '0';
-            previewSection.classList.remove('hidden');
-            setTimeout(() => {
-                previewSection.style.opacity = '1';
-                previewBtn.classList.add('hidden');
-                
-                // Hide form groups with smooth transition
-                formGroups.forEach(group => {
-                    group.style.opacity = '0';
-                    setTimeout(() => {
-                        group.style.display = 'none';
-                    }, 300);
-                });
-            }, 50);
-            
-        } catch (error) {
-            console.error('Preview error:', error);
-            showNotification(error.message, 'error');
-        } finally {
-            // Reset button state
-            previewBtn.disabled = false;
-            previewBtn.textContent = 'Preview Event';
-        }
+    elements.previewBtn.addEventListener('click', async () => {
+        await handlePreviewClick(elements);
     });
-    
+
     // Edit button handler
-    editBtn.addEventListener('click', () => {
-        console.log('Edit button clicked');
-        try {
-            // Hide preview section with smooth transition
-            previewSection.style.opacity = '0';
-            setTimeout(() => {
-                previewSection.classList.add('hidden');
-                previewBtn.classList.remove('hidden');
-                
-                // Show form groups with smooth transition
-                formGroups.forEach(group => {
-                    if (group.id === 'recurringEndGroup') {
-                        group.style.display = recurringSelect.value ? 'flex' : 'none';
-                    } else {
-                        group.style.display = 'flex';
-                    }
-                    setTimeout(() => {
-                        group.style.opacity = '1';
-                    }, 50);
-                });
-            }, 300);
-            
-        } catch (error) {
-            console.error('Edit error:', error);
-            showNotification(error.message, 'error');
-        }
+    elements.editBtn.addEventListener('click', () => {
+        handleEditClick(elements);
     });
-    
-    // Handle form submission
+
+    // Form submission handler
     const eventForm = document.getElementById('eventForm');
     if (eventForm) {
         eventForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const confirmBtn = document.getElementById('confirmBtn');
-            confirmBtn.disabled = true;
-            confirmBtn.textContent = 'Creating event...';
-            
-            try {
-                const eventDetails = getEventDetails();
-                await createCalendarEvent(eventDetails);
-                showNotification('Event created successfully!', 'success');
-                
-                // Close popup after 2 seconds
-                setTimeout(() => window.close(), 2000);
-                
-            } catch (error) {
-                console.error('Submit error:', error);
-                showNotification(error.message, 'error');
-                confirmBtn.disabled = false;
-                confirmBtn.textContent = 'Confirm & Create';
-            }
+            await handleFormSubmit(e, elements);
         });
     }
 }
 
-function getEventDetails() {
-    console.log('Getting event details...');
-    const title = document.getElementById('title')?.value?.trim();
-    if (!title) {
-        throw new Error('Event title is required');
+async function handlePreviewClick(elements) {
+    console.log('Preview button clicked');
+    try {
+        // Add loading state
+        setButtonState(elements.previewBtn, true, 'Preparing preview...');
+
+        // Validate form data
+        const eventDetails = await validateAndGetEventDetails();
+        console.log('Event details:', eventDetails);
+
+        // Update preview content
+        updatePreviewContent(eventDetails, elements);
+
+        // Show preview section with smooth transition
+        await transitionToPreview(elements);
+
+    } catch (error) {
+        console.error('Preview error:', error);
+        showNotification(error.message, 'error');
+    } finally {
+        // Reset button state
+        setButtonState(elements.previewBtn, false, 'Preview Event');
     }
-    
-    const date = document.getElementById('date')?.value;
-    if (!date) {
-        throw new Error('Event date is required');
-    }
-    
-    const time = document.getElementById('time')?.value;
-    if (!time) {
-        throw new Error('Event time is required');
-    }
-    
-    return {
-        title,
-        date,
-        time,
+}
+
+async function validateAndGetEventDetails() {
+    const formData = {
+        title: document.getElementById('title')?.value?.trim(),
+        date: document.getElementById('date')?.value,
+        time: document.getElementById('time')?.value,
         description: document.getElementById('description')?.value?.trim() || '',
         recurring: document.getElementById('recurring')?.value || '',
         recurringEnd: document.getElementById('recurringEnd')?.value || ''
     };
+
+    // Validate required fields
+    if (!formData.title) throw new Error('Event title is required');
+    if (!formData.date) throw new Error('Event date is required');
+    if (!formData.time) throw new Error('Event time is required');
+
+    // Validate date and time
+    const eventDate = new Date(`${formData.date}T${formData.time}`);
+    if (isNaN(eventDate.getTime())) {
+        throw new Error('Invalid date or time format');
+    }
+
+    // Validate recurring end date if recurring is selected
+    if (formData.recurring && formData.recurringEnd) {
+        const endDate = new Date(formData.recurringEnd);
+        if (isNaN(endDate.getTime())) {
+            throw new Error('Invalid recurring end date');
+        }
+        if (endDate < eventDate) {
+            throw new Error('Recurring end date must be after event start date');
+        }
+    }
+
+    return formData;
+}
+
+function updatePreviewContent(eventDetails, elements) {
+    document.getElementById('previewTitle').textContent = eventDetails.title;
+    document.getElementById('previewDateTime').textContent = 
+        formatDateTime(eventDetails.date, eventDetails.time);
+    document.getElementById('previewDescription').textContent = 
+        eventDetails.description || 'No description';
+    document.getElementById('previewRecurrence').textContent = 
+        formatRecurrence(eventDetails.recurring, eventDetails.recurringEnd);
+}
+
+async function transitionToPreview(elements) {
+    elements.previewSection.style.opacity = '0';
+    elements.previewSection.classList.remove('hidden');
+
+    // Use Promise to handle transition timing
+    await new Promise(resolve => {
+        setTimeout(() => {
+            elements.previewSection.style.opacity = '1';
+            elements.previewBtn.classList.add('hidden');
+
+            // Hide form groups with smooth transition
+            elements.formGroups.forEach(group => {
+                group.style.opacity = '0';
+                setTimeout(() => {
+                    group.style.display = 'none';
+                }, 300);
+            });
+            resolve();
+        }, 50);
+    });
+}
+
+function handleEditClick(elements) {
+    console.log('Edit button clicked');
+    try {
+        // Hide preview section with smooth transition
+        elements.previewSection.style.opacity = '0';
+        setTimeout(() => {
+            elements.previewSection.classList.add('hidden');
+            elements.previewBtn.classList.remove('hidden');
+
+            // Show form groups with smooth transition
+            elements.formGroups.forEach(group => {
+                if (group.id === 'recurringEndGroup') {
+                    group.style.display = elements.recurring.value ? 'flex' : 'none';
+                } else {
+                    group.style.display = 'flex';
+                }
+                setTimeout(() => {
+                    group.style.opacity = '1';
+                }, 50);
+            });
+        }, 300);
+    } catch (error) {
+        console.error('Edit error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+async function handleFormSubmit(e, elements) {
+    e.preventDefault();
+    const confirmBtn = document.getElementById('confirmBtn');
+
+    try {
+        setButtonState(confirmBtn, true, 'Creating event...');
+        const eventDetails = await validateAndGetEventDetails();
+        await createCalendarEvent(eventDetails);
+        
+        showNotification('Event created successfully!', 'success');
+        setTimeout(() => window.close(), 2000);
+
+    } catch (error) {
+        console.error('Submit error:', error);
+        showNotification(error.message, 'error');
+    } finally {
+        setButtonState(confirmBtn, false, 'Confirm & Create');
+    }
+}
+
+function handleRecurringChange(elements) {
+    const recurringEndGroup = document.getElementById('recurringEndGroup');
+    recurringEndGroup.style.display = elements.recurring.value ? 'flex' : 'none';
+    
+    if (elements.recurring.value) {
+        const endDate = new Date(elements.date.value);
+        endDate.setMonth(endDate.getMonth() + 1);
+        elements.recurringEnd.value = endDate.toISOString().split('T')[0];
+    }
+}
+
+function setButtonState(button, loading, text) {
+    if (button) {
+        button.disabled = loading;
+        button.textContent = text;
+    }
 }
 
 function formatDateTime(date, time) {
     try {
         const dateObj = new Date(`${date}T${time}`);
+        if (isNaN(dateObj.getTime())) {
+            throw new Error('Invalid date/time');
+        }
         return dateObj.toLocaleString(undefined, {
             weekday: 'long',
             year: 'numeric',
