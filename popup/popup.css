@@ -16,11 +16,15 @@ body {
     gap: 5px;
 }
 
-input, textarea {
+input, textarea, select {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 14px;
+}
+
+select {
+    background-color: white;
 }
 
 button {

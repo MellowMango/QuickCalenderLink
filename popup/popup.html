@@ -27,6 +27,22 @@
                 <label for="description">Description:</label>
                 <textarea id="description" rows="3"></textarea>
             </div>
+
+            <div class="form-group">
+                <label for="recurring">Recurring Event:</label>
+                <select id="recurring">
+                    <option value="">No Repeat</option>
+                    <option value="DAILY">Daily</option>
+                    <option value="WEEKLY">Weekly</option>
+                    <option value="MONTHLY">Monthly</option>
+                    <option value="YEARLY">Yearly</option>
+                </select>
+            </div>
+            
+            <div class="form-group" id="recurringEndGroup" style="display: none;">
+                <label for="recurringEnd">Repeat Until:</label>
+                <input type="date" id="recurringEnd">
+            </div>
             
             <button type="submit" id="submitBtn">Create Event</button>
         </form>
