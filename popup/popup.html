@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Create Calendar Event</title>
-    <link rel="stylesheet" href="/popup/popup.css">
+    <link rel="stylesheet" href="popup.css">
 </head>
 <body>
     <div class="container">
@@ -27,43 +27,13 @@
                 <label for="description">Description:</label>
                 <textarea id="description" rows="3"></textarea>
             </div>
-
-            <div class="form-group">
-                <label for="recurring">Recurring Event:</label>
-                <select id="recurring">
-                    <option value="">No Repeat</option>
-                    <option value="DAILY">Daily</option>
-                    <option value="WEEKLY">Weekly</option>
-                    <option value="MONTHLY">Monthly</option>
-                    <option value="YEARLY">Yearly</option>
-                </select>
-            </div>
             
-            <div class="form-group" id="recurringEndGroup" style="display: none;">
-                <label for="recurringEnd">Repeat Until:</label>
-                <input type="date" id="recurringEnd">
-            </div>
-
-            <div id="previewSection" class="preview-section hidden">
-                <h3>Event Preview</h3>
-                <div class="preview-content">
-                    <p><strong>Title:</strong> <span id="previewTitle"></span></p>
-                    <p><strong>Date & Time:</strong> <span id="previewDateTime"></span></p>
-                    <p><strong>Description:</strong> <span id="previewDescription"></span></p>
-                    <p><strong>Recurrence:</strong> <span id="previewRecurrence"></span></p>
-                </div>
-                <div class="preview-actions">
-                    <button type="button" id="editBtn" class="secondary-btn">Edit</button>
-                    <button type="submit" id="confirmBtn">Confirm & Create</button>
-                </div>
-            </div>
-            
-            <button type="button" id="previewBtn">Preview Event</button>
+            <button type="submit" id="submitBtn">Create Event</button>
         </form>
         
         <div id="notification" class="hidden"></div>
     </div>
-    <script src="/lib/calendar-api.js"></script>
-    <script src="/popup/popup.js"></script>
+    <script src="../lib/calendar-api.js"></script>
+    <script src="popup.js"></script>
 </body>
 </html>
