@@ -1,37 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Calendar Event</title>
+    <title>Quick Calendar</title>
     <link rel="stylesheet" href="popup.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h2>Create Calendar Event</h2>
+        <header>
+            <h1>Quick Calendar</h1>
+            <div class="auth-buttons">
+                <button id="authenticateButton" class="auth-button">Connect Calendar</button>
+                <button id="signOutButton" class="sign-out-button">Sign Out</button>
+            </div>
+        </header>
+
         <form id="eventForm">
             <div class="form-group">
-                <label for="title">Event Title:</label>
-                <input type="text" id="title" required>
+                <input type="text" id="title" required placeholder="Event Title">
+            </div>
+            
+            <div class="time-grid">
+                <div class="form-group">
+                    <label>Start</label>
+                    <div class="datetime-group">
+                        <input type="date" id="date" required>
+                        <input type="time" id="time" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>End</label>
+                    <div class="datetime-group">
+                        <input type="time" id="endTime" required>
+                        <div class="end-date-toggle">
+                            <input type="checkbox" id="differentEndDate">
+                            <label for="differentEndDate">Different day</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group" id="endDateGroup" style="display: none;">
+                <input type="date" id="endDate">
             </div>
             
             <div class="form-group">
-                <label for="date">Date:</label>
-                <input type="date" id="date" required>
+                <textarea id="description" rows="2" placeholder="Add description (optional)"></textarea>
             </div>
             
-            <div class="form-group">
-                <label for="time">Time:</label>
-                <input type="time" id="time" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="description">Description:</label>
-                <textarea id="description" rows="3"></textarea>
-            </div>
-            
-            <button type="submit" id="submitBtn">Create Event</button>
+            <button type="submit" id="submitBtn" class="create-button">Create Event</button>
         </form>
         
         <div id="notification" class="hidden"></div>
+        <footer style="margin-top: 16px; text-align: center; font-size: 12px; color: #666;">
+            <a href="privacy/privacy.html" target="_blank" style="color: #1a73e8; text-decoration: none;">Privacy Policy</a>
+        </footer>
     </div>
     <script src="../lib/calendar-api.js"></script>
     <script src="popup.js"></script>

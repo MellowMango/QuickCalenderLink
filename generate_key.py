@@ -46,7 +46,7 @@ def generate_extension_key():
             "service_worker": "background/background.js"
         },
         "oauth2": {
-            "client_id": "${YOUR_GOOGLE_CLIENT_ID}",
+            "client_id": "828541577236-2vlknoonm9sgo5usu8o17mckm7c83gj9.apps.googleusercontent.com",
             "scopes": [
                 "https://www.googleapis.com/auth/calendar.events"
             ]

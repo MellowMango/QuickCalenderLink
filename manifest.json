@@ -7,6 +7,7 @@
   "permissions": [
     "activeTab",
     "identity",
+    "identity.email",
     "tabs"
   ],
   "host_permissions": [
@@ -25,11 +26,13 @@
   "oauth2": {
     "client_id": "828541577236-2vlknoonm9sgo5usu8o17mckm7c83gj9.apps.googleusercontent.com",
     "scopes": [
-      "https://www.googleapis.com/auth/calendar.events"
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar"
     ]
   },
   "icons": {
     "48": "assets/icon.svg",
     "128": "assets/icon.svg"
-  }
+  },
+  "privacy_policy": "privacy/privacy.html"
 }
