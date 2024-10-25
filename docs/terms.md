@@ -1,6 +1,6 @@
 # Quick Calendar - Terms of Service
 
-Last Updated: [Current Date]
+Last Updated: [10/24/2024]
 
 ## 1. Introduction
 Welcome to Quick Calendar ("the Extension"), a Chrome browser extension that helps users create Google Calendar events from web pages. By installing and using the Extension, you agree to these Terms of Service.
